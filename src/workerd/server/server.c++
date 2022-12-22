@@ -1336,7 +1336,7 @@ public:
           auto newActor = kj::refcounted<Worker::Actor>(
               *service.worker, nullptr, kj::mv(id), true, kj::mv(makeActorCache),
               className, kj::mv(makeStorage), lock, kj::mv(loopback),
-              timerChannel, kj::refcounted<ActorObserver>());
+              timerChannel, kj::refcounted<ActorObserver>(), nullptr, nullptr);
 
           // TODO(sqlite): Now that actors are backed by real disk, we should shut them down after
           //   a minute of inactivity...

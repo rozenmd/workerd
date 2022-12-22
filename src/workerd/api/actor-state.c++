@@ -15,6 +15,7 @@
 #include <workerd/io/actor-storage.h>
 #include <workerd/io/actor-sqlite.h>
 #include "sql.h"
+#include <workerd/api/web-socket.h>
 
 namespace workerd::api {
 
@@ -721,6 +722,66 @@ kj::OneOf<jsg::Ref<DurableObjectId>, kj::StringPtr> DurableObjectState::getId() 
 jsg::Promise<jsg::Value> DurableObjectState::blockConcurrencyWhile(jsg::Lock& js,
     jsg::Function<jsg::Promise<jsg::Value>()> callback) {
   return IoContext::current().blockConcurrencyWhile(js, kj::mv(callback));
+}
+
+void DurableObjectState::acceptWebSocket(
+    jsg::Ref<WebSocket> ws,
+    jsg::Optional<kj::Array<kj::String>> tags) {
+  JSG_ASSERT(!ws->isAccepted(), Error,
+      "Cannot call `acceptWebSocket()` if the WebSocket was already accepted via `accept()`");
+  JSG_ASSERT(ws->pairIsAwaitingCoupling(), Error,
+      "Cannot call `acceptWebSocket()` on this websocket because its pair has already been "\
+      "accepted or used in a Response.");
+  // WebSocket::couple() will keep the IoContext around if the websocket we return in the Response
+  // is `LOCAL`, so we have to set it to remote. Note that `setRemoteOnPair()` will throw if
+  // `ws` is not an end of a WebSocketPair.
+  ws->setRemoteOnPair();
+
+  // We need to get a HibernationManager to give the websocket to.
+  auto& a = KJ_REQUIRE_NONNULL(IoContext::current().getActor());
+  if (a.getHibernationManager() == nullptr) {
+    // TODO(now): Actually set the hibernation manager.
+  }
+  // HibernationManager's acceptWebSocket() will throw if the websocket is in an incompatible state.
+  // Note that not providing a tag is equivalent to providing an empty tag array.
+  // Any duplicate tags will be ignored.
+  kj::Array<kj::String> distinctTags = [&]() -> kj::Array<kj::String> {
+    KJ_IF_MAYBE(t, tags) {
+      kj::HashSet<kj::String> seen;
+      size_t distinctTagCount = 0;
+      for (auto tag = t->begin(); tag < t->end(); tag++) {
+        JSG_REQUIRE(distinctTagCount < 10, Error,
+            "a Hibernatable WebSocket cannot have more than 10 tags");
+        JSG_REQUIRE(tag->size() <= 256, Error,
+            "\"", *tag, "\" ", "is longer than max tag length (256 characters).");
+        if (!seen.contains(*tag)) {
+          seen.insert(kj::mv(*tag));
+          distinctTagCount++;
+        }
+      }
+
+      size_t position = 0;
+      auto distinct = kj::heapArray<kj::String>(seen.size());
+
+      for (auto tag = seen.begin(); tag < seen.end(); tag++, position++) {
+        distinct[position] = kj::mv(*tag);
+      }
+      return kj::mv(distinct);
+    }
+    return kj::Array<kj::String>();
+  }();
+  KJ_REQUIRE_NONNULL(a.getHibernationManager()).acceptWebSocket(kj::mv(ws), distinctTags);
+}
+
+kj::Array<jsg::Ref<api::WebSocket>> DurableObjectState::getWebSockets(
+    jsg::Lock& js,
+    jsg::Optional<kj::String> tag) {
+  auto& a = KJ_REQUIRE_NONNULL(IoContext::current().getActor());
+  KJ_IF_MAYBE(manager, a.getHibernationManager()) {
+    return manager->getWebSockets(
+        js, tag.map([](kj::StringPtr t) { return t; })).releaseAsArray();
+  }
+  return kj::Array<jsg::Ref<api::WebSocket>>();
 }
 
 kj::Array<kj::byte> serializeV8Value(v8::Local<v8::Value> value, v8::Isolate* isolate) {
