@@ -18,7 +18,6 @@ public:
 
   static jsg::Ref<HibernatableWebSocketEvent> constructor(kj::String type) = delete;
 
-  // TODO(soon): return correct ws instead of the current stub implementation
   jsg::Ref<WebSocket> getWebSocket(jsg::Lock& lock);
   jsg::Value convertError(jsg::Lock& lock, kj::Exception e) {
     return lock.exceptionToJs(kj::mv(e));
@@ -35,8 +34,9 @@ public:
   HibernatableWebSocketCustomEventImpl(
       uint16_t typeId,
       kj::TaskSet& waitUntilTasks,
-      HibernatableSocketParams params)
-    : typeId(typeId), waitUntilTasks(waitUntilTasks), params(kj::mv(params)) {}
+      HibernatableSocketParams params,
+      Worker::Actor::HibernationManager& manager)
+    : typeId(typeId), waitUntilTasks(waitUntilTasks), params(kj::mv(params)), manager(manager) {}
 
   kj::Promise<Result> run(
       kj::Own<IoContext_IncomingRequest> incomingRequest,
@@ -56,6 +56,7 @@ private:
   uint16_t typeId;
   kj::TaskSet& waitUntilTasks;
   HibernatableSocketParams params;
+  Worker::Actor::HibernationManager& manager;
 };
 
 #define EW_WEB_SOCKET_MESSAGE_ISOLATE_TYPES      \

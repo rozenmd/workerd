@@ -4,6 +4,7 @@
 
 #include "hibernatable-web-socket.h"
 #include <workerd/jsg/ser.h>
+#include <workerd/io/hibernation-manager.h>
 
 namespace workerd::api {
 
@@ -11,9 +12,14 @@ HibernatableWebSocketEvent::HibernatableWebSocketEvent()
     : ExtendableEvent("webSocketMessage") {};
 
 jsg::Ref<WebSocket> HibernatableWebSocketEvent::getWebSocket(jsg::Lock& lock) {
-  // This is just a stub implementation and is to be replaced once the new websocket manager
-  // needs it
-  return jsg::alloc<WebSocket>(kj::str(""), WebSocket::Locality::LOCAL);
+  auto& manager = static_cast<HibernationManagerImpl&>(
+      KJ_REQUIRE_NONNULL(
+          KJ_REQUIRE_NONNULL(IoContext::current().getActor()).getHibernationManager()));
+  auto& hibernatableWebSocket = KJ_REQUIRE_NONNULL(manager.webSocketForEventHandler);
+  if (hibernatableWebSocket.activeWebSocket == nullptr) {
+    hibernatableWebSocket.unhibernate(lock);
+  }
+  return KJ_REQUIRE_NONNULL(hibernatableWebSocket.activeWebSocket).addRef();
 }
 
 kj::Promise<WorkerInterface::CustomEvent::Result> HibernatableWebSocketCustomEventImpl::run(
@@ -23,6 +29,13 @@ kj::Promise<WorkerInterface::CustomEvent::Result> HibernatableWebSocketCustomEve
   auto& context = incomingRequest->getContext();
   incomingRequest->delivered();
   EventOutcome outcome = EventOutcome::OK;
+
+  // We definitely have an actor by this point. Let's set the hibernation manager on the actor
+  // before we start running any events that might need to access it.
+  auto& a = KJ_REQUIRE_NONNULL(context.getActor());
+  if (a.getHibernationManager() == nullptr) {
+    a.setHibernationManager(kj::addRef(manager));
+  }
 
   try {
     co_await context.run(
