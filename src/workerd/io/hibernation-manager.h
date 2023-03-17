@@ -39,6 +39,10 @@ public:
   // Hibernates all the websockets held by the HibernationManager.
   // This converts our activeOrPackage from an api::WebSocket to a HibernationPackage.
 
+  void setWebSocketAutoResponse(kj::String request, kj::String response) override;
+  void unsetWebSocketAutoResponse() override;
+  void setTimerChannel(TimerChannel& timerChannel) override;
+
   friend class api::HibernatableWebSocketEvent;
 
 private:
@@ -132,6 +136,10 @@ private:
     bool hasDispatchedClose = false;
     // True once we have dispatched the close event.
     // This prevents us from dispatching it if we have already done so.
+
+    kj::Maybe<kj::Date> autoResponseTimestamp;
+    // Stores the last received autoResponseRequest timestamp.
+
     friend HibernationManagerImpl;
   };
 
@@ -196,5 +204,8 @@ private:
   };
   DisconnectHandler onDisconnect;
   kj::TaskSet readLoopTasks;
+  kj::Maybe<kj::String> autoResponseRequest;
+  kj::Maybe<kj::String> autoResponseResponse;
+  kj::Maybe<TimerChannel&> timer;
 };
 }; // namespace workerd

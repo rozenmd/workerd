@@ -684,6 +684,9 @@ public:
         jsg::Lock& js,
         kj::Maybe<kj::StringPtr> tag) = 0;
     virtual void hibernateWebSockets(Worker::Lock& lock) = 0;
+    virtual void setWebSocketAutoResponse(kj::String request, kj::String response) = 0;
+    virtual void unsetWebSocketAutoResponse() = 0;
+    virtual void setTimerChannel(TimerChannel& timerChannel) = 0;
   };
 
   Actor(const Worker& worker, kj::Maybe<RequestTracker&> tracker, Id actorId,

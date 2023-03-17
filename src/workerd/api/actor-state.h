@@ -386,6 +386,14 @@ public:
   // If no tag is provided, an array of all accepted WebSockets is returned.
   // Disconnected WebSockets are automatically removed from the list.
 
+  void setWebSocketAutoresponse(kj::String request, kj::String response);
+  // Sets an object-wide websocket auto response message for a specific
+  // request string. All websockets belonging to the same object must
+  // reply to request with response and store the request recived timestamp.
+
+  void unsetWebSocketAutoresponse();
+  // Unsets an object-wide websocket auto response.
+
   JSG_RESOURCE_TYPE(DurableObjectState, CompatibilityFlags::Reader flags) {
     JSG_METHOD(waitUntil);
     JSG_READONLY_INSTANCE_PROPERTY(id, getId);
@@ -393,6 +401,8 @@ public:
     JSG_METHOD(blockConcurrencyWhile);
     JSG_METHOD(acceptWebSocket);
     JSG_METHOD(getWebSockets);
+    JSG_METHOD(setWebSocketAutoresponse);
+    JSG_METHOD(unsetWebSocketAutoresponse);
 
     if (flags.getWorkerdExperimental()) {
       // TODO(someday): This currently exists for testing purposes only but maybe it could be

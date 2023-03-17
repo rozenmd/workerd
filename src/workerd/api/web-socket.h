@@ -380,6 +380,8 @@ public:
   // Used to get/set the attachment for hibernation.
   // If the object isn't serialized, it will not survive hibernation.
 
+  void setAutoResponseTimestamp(kj::Maybe<kj::Date> time);
+
   int getReadyState();
 
   bool isAccepted();
@@ -393,6 +395,7 @@ public:
   kj::Maybe<kj::StringPtr> getUrl();
   kj::Maybe<kj::StringPtr> getProtocol();
   kj::Maybe<kj::StringPtr> getExtensions();
+  kj::Maybe<kj::Date> getAutoResponseTimestamp();
 
   JSG_RESOURCE_TYPE(WebSocket, CompatibilityFlags::Reader flags) {
     JSG_INHERIT(EventTarget);
@@ -416,11 +419,13 @@ public:
       JSG_READONLY_PROTOTYPE_PROPERTY(url, getUrl);
       JSG_READONLY_PROTOTYPE_PROPERTY(protocol, getProtocol);
       JSG_READONLY_PROTOTYPE_PROPERTY(extensions, getExtensions);
+      JSG_READONLY_PROTOTYPE_PROPERTY(autoResponseTimestamp, getAutoResponseTimestamp);
     } else {
       JSG_READONLY_INSTANCE_PROPERTY(readyState, getReadyState);
       JSG_READONLY_INSTANCE_PROPERTY(url, getUrl);
       JSG_READONLY_INSTANCE_PROPERTY(protocol, getProtocol);
       JSG_READONLY_INSTANCE_PROPERTY(extensions, getExtensions);
+      JSG_READONLY_INSTANCE_PROPERTY(autoResponseTimestamp, getAutoResponseTimestamp);
     }
 
     JSG_TS_DEFINE(type WebSocketEventMap = {
@@ -436,6 +441,7 @@ private:
   kj::Maybe<kj::String> url;
   kj::Maybe<kj::String> protocol = kj::String();
   kj::Maybe<kj::String> extensions = kj::String();
+  kj::Maybe<kj::Date> autoResponseTimestamp;
   kj::Maybe<kj::Array<byte>> serializedAttachment;
   // All WebSockets have this property. It starts out null but can
   // be assigned to any serializable value. The property will survive hibernation.

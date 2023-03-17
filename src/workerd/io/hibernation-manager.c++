@@ -96,6 +96,21 @@ kj::Vector<jsg::Ref<api::WebSocket>> HibernationManagerImpl::getWebSockets(
   return kj::mv(matches);
 }
 
+void HibernationManagerImpl::setWebSocketAutoResponse(kj::String request,
+                                                      kj::String response) {
+  autoResponseRequest = kj::mv(request);
+  autoResponseResponse = kj::mv(response);
+}
+
+void HibernationManagerImpl::unsetWebSocketAutoResponse() {
+  autoResponseRequest = nullptr;
+  autoResponseResponse = nullptr;
+}
+
+void HibernationManagerImpl::setTimerChannel(TimerChannel& timerChannel) {
+  timer = timerChannel;
+}
+
 void HibernationManagerImpl::hibernateWebSockets(Worker::Lock& lock) {
   jsg::Lock& js(lock);
   v8::HandleScope handleScope(js.v8Isolate);
@@ -164,6 +179,41 @@ kj::Promise<void> HibernationManagerImpl::readLoop(HibernatableWebSocket& hib) {
   while (true) {
     kj::WebSocket::Message message = co_await ws.receive();
     // Note that errors are handled by the callee of `readLoop`, since we throw from `receive()`.
+
+    auto skip = false;
+
+    KJ_IF_MAYBE (req, autoResponseRequest) {
+      KJ_SWITCH_ONEOF(message) {
+        KJ_CASE_ONEOF(text, kj::String) {
+          if (text == *req) {
+            // If the received message equals to the one set for auto response, we must
+            // short-circuit readLoop, store the current timestamp and respond with
+            // autoResponseResponse.
+            TimerChannel& timerChannel = KJ_REQUIRE_NONNULL(timer);
+            // We should have set the timerChannel previously in the hibernation manager.
+            // If we haven't, we aren't able to get the current time.
+            hib.autoResponseTimestamp = timerChannel.now();
+            KJ_IF_MAYBE(active, hib.activeOrPackage.tryGet<jsg::Ref<api::WebSocket>>()) {
+              // If the actor is not hibernated, we need to update autoResponseTimestamp on the
+              // active websocket.
+              (*active)->setAutoResponseTimestamp(hib.autoResponseTimestamp);
+            }
+            auto response = KJ_REQUIRE_NONNULL(kj::mv(autoResponseResponse));
+            // If we have an autoResponseRequest set, we must have autoResponseResponse also.
+            ws.send(response.asArray());
+            skip = true;
+            // If we've sent an auto response message, we should not unhibernate or deliver the
+            // received message to the actor
+          }
+        }
+        KJ_CASE_ONEOF_DEFAULT {}
+      }
+    }
+
+    if (skip) {
+      continue;
+    }
+
     auto websocketId = randomUUID(nullptr);
     webSocketsForEventHandler.insert(kj::str(websocketId), &hib);
 

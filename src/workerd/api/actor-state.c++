@@ -830,6 +830,37 @@ kj::Array<jsg::Ref<api::WebSocket>> DurableObjectState::getWebSockets(
   return kj::Array<jsg::Ref<api::WebSocket>>();
 }
 
+void DurableObjectState::setWebSocketAutoresponse(kj::String request, kj::String response) {
+  auto maxRequestResponseSize = 2048;
+
+  JSG_REQUIRE(request.size() <= maxRequestResponseSize, RangeError, kj::str(
+      "Request cannot be larger than ", maxRequestResponseSize, " bytes. ",
+      "A request of size ", request.size(), " was provided."));
+
+  JSG_REQUIRE(response.size() <= maxRequestResponseSize, RangeError, kj::str(
+      "Response cannot be larger than ", maxRequestResponseSize, " bytes. ",
+      "A response of size ", response.size(), " was provided."));
+
+  auto& a = KJ_REQUIRE_NONNULL(IoContext::current().getActor());
+  if (a.getHibernationManager() == nullptr) {
+    a.setHibernationManager(kj::refcounted<HibernationManagerImpl>(
+            a.getLoopback(), KJ_REQUIRE_NONNULL(a.getHibernationEventType())));
+    // If there's no hibernation manager created yet, we should create one and
+    // set its auto response.
+  }
+  KJ_REQUIRE_NONNULL(a.getHibernationManager()).setWebSocketAutoResponse(
+    kj::mv(request),
+    kj::mv(response));
+}
+
+void DurableObjectState::unsetWebSocketAutoresponse() {
+  auto& a = KJ_REQUIRE_NONNULL(IoContext::current().getActor());
+  KJ_IF_MAYBE(manager, a.getHibernationManager()) {
+    // If there's no hibernation manager created yet, there's nothing to do here.
+    manager->unsetWebSocketAutoResponse();
+  }
+}
+
 kj::Array<kj::byte> serializeV8Value(v8::Local<v8::Value> value, v8::Isolate* isolate) {
   jsg::Serializer serializer(isolate, jsg::Serializer::Options {
     .version = 15,
