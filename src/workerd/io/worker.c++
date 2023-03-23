@@ -15,8 +15,8 @@
 #include <workerd/io/cdp.capnp.h>
 #include <workerd/io/compatibility-date.h>
 #include <capnp/compat/json.h>
-#include <capnp/schema-loader.h>
 #include <kj/compat/gzip.h>
+#include <kj/encoding.h>
 #include <kj/filesystem.h>
 #include <kj/map.h>
 #include <v8-inspector.h>
@@ -318,7 +318,7 @@ void reportStartupError(
     const IsolateLimitEnforcer& limitEnforcer,
     kj::Maybe<kj::Exception> maybeLimitError,
     v8::TryCatch& catcher,
-    kj::Maybe<Worker::ValidationErrorReporter&> errorReporter,
+    kj::Maybe<ValidationErrorReporter&> errorReporter,
     kj::Maybe<kj::Exception>& permanentException) {
   v8::TryCatch catcher2(lock.v8Isolate);
   kj::Maybe<kj::Exception> maybeLimitError2;
@@ -2617,7 +2617,6 @@ struct Worker::Actor::Impl final: public kj::TaskSet::ErrorHandler {
 
   kj::Maybe<kj::Own<IoContext>> ioContext;
   // `ioContext` is initialized upon delivery of the first request.
-  // TODO(cleanup): Rename IoContext to IoContext.
 
   kj::Maybe<kj::Own<kj::PromiseFulfiller<kj::Promise<void>>>> abortFulfiller;
   // If onBroken() is called while `ioContext` is still null, this is initialized. When

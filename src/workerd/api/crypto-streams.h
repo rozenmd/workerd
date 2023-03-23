@@ -8,8 +8,8 @@
 #include "crypto.h"
 #include <workerd/jsg/jsg.h>
 #include <openssl/err.h>
-#include "streams/writable.h"
-#include "streams/readable.h"
+#include "streams.h"
+#include "streams/internal.h"
 
 namespace workerd::api {
 

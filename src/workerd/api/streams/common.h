@@ -5,15 +5,9 @@
 #pragma once
 
 #include <workerd/jsg/jsg.h>
-#include <workerd/jsg/value.h>
-#include <workerd/jsg/iterator.h>
-#include <kj/async-io.h>
+#include <workerd/jsg/promise.h>
 #include <workerd/io/io-context.h>
 #include "../basics.h"
-#include "../util.h"
-
-#include <deque>
-#include <queue>
 
 #if _MSC_VER
 typedef long long ssize_t;

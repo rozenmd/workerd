@@ -7,6 +7,7 @@
 #include <kj/vector.h>
 #include <kj/compat/url.h>
 #include <workerd/jsg/jsg.h>
+#include <workerd/jsg/iterator.h>
 #include "blob.h"
 #include <workerd/io/compatibility-date.capnp.h>
 

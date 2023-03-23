@@ -7,6 +7,7 @@
 // handle encoding/decoding, and optimize pumping between them when possible.
 
 #include "streams.h"
+#include "streams/internal.h"
 #include "http.h"
 #include "sockets.h"
 #include <workerd/io/io-context.h>

@@ -2,14 +2,13 @@
 // Licensed under the Apache 2.0 license found in the LICENSE file or at:
 //     https://opensource.org/licenses/Apache-2.0
 
+#include <stdio.h>
 #include "compatibility-date.h"
 #include "time.h"
 #include <capnp/schema.h>
 #include <capnp/dynamic.h>
+#include <kj/map.h>
 
-#if _WIN32
-#include <stdio.h>
-#endif
 
 namespace workerd {
 
@@ -60,7 +59,7 @@ struct CompatDate {
     return CompatDate { year, month, day };
   }
 
-  static CompatDate parse(kj::StringPtr text, Worker::ValidationErrorReporter& errorReporter) {
+  static CompatDate parse(kj::StringPtr text, ValidationErrorReporter& errorReporter) {
     static constexpr CompatDate DEFAULT_DATE { 2021, 5, 1 };
     KJ_IF_MAYBE(v, parse(text)) {
       return *v;
@@ -91,7 +90,7 @@ struct CompatDate {
 
 void compileCompatibilityFlags(kj::StringPtr compatDate, capnp::List<capnp::Text>::Reader compatFlags,
                          CompatibilityFlags::Builder output,
-                         Worker::ValidationErrorReporter& errorReporter,
+                         ValidationErrorReporter& errorReporter,
                          bool allowExperimentalFeatures,
                          CompatibilityDateValidation dateValidation) {
   auto parsedCompatDate = CompatDate::parse(compatDate, errorReporter);

@@ -7,7 +7,8 @@ wd_cc_library(
     # HACK: Currently, the `io` and `api` packages are interdependent. We fold all the sources
     #   from `api` into `io`. In principle, it should be possible to pull them apart so `api`
     #   depends on `io` but not vice versa.
-    # TODO(cleaunp): Fix this.
+    # TODO(cleaunp): Fix this – after cleaning up includes there is now less entanglement, but this
+    # still looks difficult to achieve.
     srcs = glob(
         ["*.c++"],
         exclude = [

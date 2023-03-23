@@ -5,7 +5,6 @@
 #pragma once
 
 #include <workerd/io/worker.h>
-#include <workerd/api/analytics-engine.h>
 #include <workerd/server/workerd.capnp.h>
 
 namespace workerd::server {
@@ -30,7 +29,7 @@ public:
 
   static Worker::Script::Source extractSource(kj::StringPtr name,
       config::Worker::Reader conf,
-      Worker::ValidationErrorReporter& errorReporter,
+      ValidationErrorReporter& errorReporter,
       capnp::List<config::Extension>::Reader extensions);
 
   struct Global {
@@ -158,10 +157,10 @@ private:
 
   kj::Array<Worker::Script::CompiledGlobal> compileScriptGlobals(
       jsg::Lock& lock, config::Worker::Reader conf,
-      Worker::ValidationErrorReporter& errorReporter) const;
+      ValidationErrorReporter& errorReporter) const;
   kj::Own<jsg::ModuleRegistry> compileModules(
       jsg::Lock& lock, config::Worker::Reader conf,
-      Worker::ValidationErrorReporter& errorReporter,
+      ValidationErrorReporter& errorReporter,
       capnp::List<config::Extension>::Reader extensions) const;
 };
 

@@ -8,7 +8,6 @@
 #include <kj/threadlocal.h>
 #include <kj/debug.h>
 #include <workerd/jsg/jsg.h>
-#include <capnp/message.h>
 #include <workerd/util/sentry.h>
 #include <map>
 

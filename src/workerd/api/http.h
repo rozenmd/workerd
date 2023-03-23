@@ -10,7 +10,7 @@
 #include <kj/compat/http.h>
 #include <map>
 #include "basics.h"
-#include "streams/readable.h"
+#include "streams.h"
 #include "form-data.h"
 #include "web-socket.h"
 #include "url.h"
