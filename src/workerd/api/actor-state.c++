@@ -801,6 +801,26 @@ kj::Array<jsg::Ref<api::WebSocket>> DurableObjectState::getWebSockets(
   return kj::Array<jsg::Ref<api::WebSocket>>();
 }
 
+void DurableObjectState::setEventTimeout(kj::Maybe<int> timeoutMs) {
+  // The current implementation only works with Hibernatable WebSocket events
+  // TODO(soon): Apply timeout for all actor related events
+  // TODO(now): If we don't have an hibernation manager available, we sould store the requested
+  // event timeout and set it on in its ctor.
+  auto& a = KJ_REQUIRE_NONNULL(IoContext::current().getActor());
+  KJ_REQUIRE_NONNULL(a.getHibernationManager()).setEventTimeout(timeoutMs);
+}
+
+kj::Maybe<int> DurableObjectState::getEventTimeout() {
+  KJ_IF_MAYBE(a, IoContext::current().getActor()) {
+    KJ_IF_MAYBE(manager, a->getHibernationManager()) {
+      return manager->getEventTimeout();
+    }
+  }
+  return nullptr;
+  // auto& a = KJ_REQUIRE_NONNULL(IoContext::current().getActor());
+  // KJ_REQUIRE_NONNULL(a.getHibernationManager()).unsetEventTimeout();
+}
+
 kj::Array<kj::byte> serializeV8Value(v8::Local<v8::Value> value, v8::Isolate* isolate) {
   jsg::Serializer serializer(isolate, jsg::Serializer::Options {
     .version = 15,

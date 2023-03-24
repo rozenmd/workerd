@@ -5,6 +5,7 @@
 #pragma once
 
 #include <kj/debug.h>
+#include <kj/time.h>
 
 #include <workerd/io/worker-interface.capnp.h>
 #include <workerd/io/worker-interface.h>
@@ -32,6 +33,15 @@ public:
 class HibernatableWebSocketCustomEventImpl final: public WorkerInterface::CustomEvent,
     public kj::Refcounted {
 public:
+  HibernatableWebSocketCustomEventImpl(
+      uint16_t typeId,
+      kj::TaskSet& waitUntilTasks,
+      HibernatableSocketParams params,
+      kj::Maybe<int> timeoutMs,
+      kj::Maybe<TimerChannel&> timerChannel,
+      Worker::Actor::HibernationManager& manager)
+    : typeId(typeId), waitUntilTasks(waitUntilTasks), params(kj::mv(params)), timeoutMs(timeoutMs),
+      timerChannel(timerChannel), manager(manager) {}
   HibernatableWebSocketCustomEventImpl(
       uint16_t typeId,
       kj::TaskSet& waitUntilTasks,
@@ -95,6 +105,8 @@ private:
   uint16_t typeId;
   kj::TaskSet& waitUntilTasks;
   kj::OneOf<HibernatableSocketParams, kj::Own<HibernationReader>> params;
+  kj::Maybe<int> timeoutMs;
+  kj::Maybe<TimerChannel&> timerChannel;
   kj::Maybe<Worker::Actor::HibernationManager&> manager;
 };
 

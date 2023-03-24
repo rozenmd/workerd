@@ -41,6 +41,15 @@ public:
 
   friend jsg::Ref<api::WebSocket> api::HibernatableWebSocketEvent::getWebSocket(jsg::Lock& lock);
 
+  void setEventTimeout(kj::Maybe<int> timeoutMs) override;
+  // Sets the maximum time in Ms that an event can run for. If the timeout is reached, event is canceled.
+
+  kj::Maybe<int> getEventTimeout() override;
+  // Gets the event timeout.
+
+  void setTimerChannel(TimerChannel& timer) override;
+  // Adds a reference to a timechannel to be used for autoresponse timestamp and event timeouts.
+
 private:
   class HibernatableWebSocket;
   struct TagListItem {
@@ -187,5 +196,8 @@ private:
   };
   DisconnectHandler onDisconnect;
   kj::TaskSet readLoopTasks;
+  kj::Maybe<TimerChannel&> timerChannel;
+  kj::Maybe<int> eventTimeoutMs;
+  // Used to set the event dispatch timeout
 };
 }; // namespace workerd

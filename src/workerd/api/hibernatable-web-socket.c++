@@ -35,8 +35,7 @@ kj::Promise<WorkerInterface::CustomEvent::Result> HibernatableWebSocketCustomEve
     a.setHibernationManager(kj::addRef(KJ_REQUIRE_NONNULL(manager)));
   }
 
-  try {
-    co_await context.run(
+  auto promise = context.run(
         [entrypointName=entrypointName, &context, eventParameters=consumeParams()]
         (Worker::Lock& lock) mutable {
       KJ_SWITCH_ONEOF(eventParameters.eventType) {
@@ -67,6 +66,24 @@ kj::Promise<WorkerInterface::CustomEvent::Result> HibernatableWebSocketCustomEve
         KJ_UNREACHABLE;
       }
     });
+
+  try {
+    KJ_IF_MAYBE(t, timeoutMs) {
+      KJ_REQUIRE_NONNULL(timerChannel);
+      // If we setup a timeout we must provide a timerChannel.
+      KJ_IF_MAYBE(tc, timerChannel) {
+        outcome = co_await tc->atTime(tc->now()+(*t)*kj::MILLISECONDS).then([]() {
+          return EventOutcome::EXCEPTION;
+        }).exclusiveJoin(kj::mv(promise).then([](){
+          return EventOutcome::OK;
+        }));
+      }
+      // We want to set a timeout for the hibernatable web socket event. Whichever promise
+      // resolves last will be canceled. If our timeout resolves first, we want to set
+      // the outcome as canceled.
+    } else {
+      co_await promise;
+    }
   } catch(kj::Exception e) {
     if (auto desc = e.getDescription();
         !jsg::isTunneledException(desc) && !jsg::isDoNotLogException(desc)) {
@@ -117,12 +134,28 @@ kj::Promise<WorkerInterface::CustomEvent::Result>
     }
   }
 
-  return req.send().then([](auto resp) {
+  // TODO(now): Improve this description
+  // The timeout set in sendRpc will only be enforced if set and when running with process sandboxing
+  // Only the first call should have a timerChannel and timeout set.
+  auto promise = req.send().then([](auto resp) {
     auto respResult = resp.getResult();
     return WorkerInterface::CustomEvent::Result {
       .outcome = respResult.getOutcome(),
     };
-  });
+  }).eagerlyEvaluate(nullptr);
+
+  KJ_IF_MAYBE(t, timeoutMs) {
+    KJ_REQUIRE_NONNULL(timerChannel);
+    // If we setup a timeout we must provide a timerChannel.
+    KJ_IF_MAYBE(tc, timerChannel) {
+      promise = tc->atTime(tc->now()+(*t)*kj::MILLISECONDS).then([]() {
+        return WorkerInterface::CustomEvent::Result {
+              .outcome = EventOutcome::EXCEPTION,
+        };
+      }).exclusiveJoin(kj::mv(promise)).eagerlyEvaluate(nullptr);
+    }
+  }
+  return promise;
 }
 
 }  // namespace workerd::api

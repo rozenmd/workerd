@@ -380,6 +380,10 @@ public:
   // If no tag is provided, an array of all accepted WebSockets is returned.
   // Disconnected WebSockets are automatically removed from the list.
 
+  void setEventTimeout(kj::Maybe<int> timeoutMs);
+  kj::Maybe<int> getEventTimeout();
+  // Sets or gots the timeout for hibernatable websockets
+
   JSG_RESOURCE_TYPE(DurableObjectState, CompatibilityFlags::Reader flags) {
     JSG_METHOD(waitUntil);
     JSG_READONLY_INSTANCE_PROPERTY(id, getId);
@@ -387,6 +391,8 @@ public:
     JSG_METHOD(blockConcurrencyWhile);
     JSG_METHOD(acceptWebSocket);
     JSG_METHOD(getWebSockets);
+    JSG_METHOD(setEventTimeout);
+    JSG_METHOD(getEventTimeout);
 
     if (flags.getWorkerdExperimental()) {
       // TODO(someday): This currently exists for testing purposes only but maybe it could be

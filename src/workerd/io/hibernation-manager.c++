@@ -95,6 +95,10 @@ kj::Vector<jsg::Ref<api::WebSocket>> HibernationManagerImpl::getWebSockets(
   return kj::mv(matches);
 }
 
+void HibernationManagerImpl::setTimerChannel(TimerChannel& timer) {
+  timerChannel = timer;
+}
+
 void HibernationManagerImpl::hibernateWebSockets(Worker::Lock& lock) {
   jsg::Lock& js(lock);
   v8::HandleScope handleScope(js.v8Isolate);
@@ -107,6 +111,21 @@ void HibernationManagerImpl::hibernateWebSockets(Worker::Lock& lock) {
           active->get()->buildPackageForHibernation());
     }
   }
+}
+
+void HibernationManagerImpl::setEventTimeout(kj::Maybe<int> timeoutMs) {
+  KJ_IF_MAYBE(t, timeoutMs) {
+    if (*t < 0) {
+      // Setting an invalid timeout will remove any set timeout.
+      eventTimeoutMs = nullptr;
+      return;
+    }
+  }
+  eventTimeoutMs = timeoutMs;
+}
+
+kj::Maybe<int> HibernationManagerImpl::getEventTimeout() {
+  return eventTimeoutMs;
 }
 
 void HibernationManagerImpl::dropHibernatableWebSocket(HibernatableWebSocket& hib) {
@@ -133,7 +152,7 @@ kj::Promise<void> HibernationManagerImpl::handleSocketTermination(
       // Dispatch the close event.
       auto workerInterface = loopback->getWorker(IoChannelFactory::SubrequestMetadata{});
       event = workerInterface->customEvent(kj::heap<api::HibernatableWebSocketCustomEventImpl>(
-          hibernationEventType, readLoopTasks, kj::mv(params), *this))
+          hibernationEventType, readLoopTasks, kj::mv(params), eventTimeoutMs, timerChannel, *this))
           .then([&](auto _) { hib.hasDispatchedClose = true; }).attach(kj::mv(workerInterface));
     } else {
       // Otherwise, we need to dispatch an error event!
@@ -142,7 +161,7 @@ kj::Promise<void> HibernationManagerImpl::handleSocketTermination(
       // Dispatch the error event.
       auto workerInterface = loopback->getWorker(IoChannelFactory::SubrequestMetadata{});
       event = workerInterface->customEvent(kj::heap<api::HibernatableWebSocketCustomEventImpl>(
-          hibernationEventType, readLoopTasks, kj::mv(params), *this)).ignoreResult()
+          hibernationEventType, readLoopTasks, kj::mv(params), eventTimeoutMs, timerChannel, *this)).ignoreResult()
               .attach(kj::mv(workerInterface));
     }
   }
@@ -187,7 +206,7 @@ kj::Promise<void> HibernationManagerImpl::readLoop(HibernatableWebSocket& hib) {
     auto workerInterface = loopback->getWorker(IoChannelFactory::SubrequestMetadata{});
     co_await workerInterface->customEvent(
         kj::heap<api::HibernatableWebSocketCustomEventImpl>(
-            hibernationEventType, readLoopTasks, kj::mv(params), *this));
+            hibernationEventType, readLoopTasks, kj::mv(params), eventTimeoutMs, timerChannel, *this));
     if (isClose) {
       // We've dispatched the close event, so let's mark our websocket as having done so to
       // prevent a situation where we dispatch it twice.
