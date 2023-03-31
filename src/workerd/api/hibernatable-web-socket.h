@@ -20,26 +20,13 @@ public:
 
   // TODO(soon): return correct ws instead of the current stub implementation
   jsg::Ref<WebSocket> getWebSocket(jsg::Lock& lock);
-  jsg::Value getError(jsg::Lock& lock);
+  jsg::Value convertError(jsg::Lock& lock, kj::Exception e) {
+    return lock.exceptionToJs(kj::mv(e));
+  }
 
   JSG_RESOURCE_TYPE(HibernatableWebSocketEvent) {
     JSG_INHERIT(ExtendableEvent);
   }
-};
-
-struct HibernatableSocketParams {
-  enum Type {
-    TEXT,
-    DATA,
-    CLOSE,
-    ERROR
-  };
-
-  Type type;
-  kj::Array<byte> data;
-  kj::String message;
-  kj::String closeReason;
-  int closeCode;
 };
 
 class HibernatableWebSocketCustomEventImpl final: public WorkerInterface::CustomEvent,
