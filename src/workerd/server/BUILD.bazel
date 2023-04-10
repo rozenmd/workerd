@@ -57,8 +57,10 @@ wd_cc_library(
     deps = [
         ":workerd_capnp",
         "//src/cloudflare",
+        "@capnp-cpp//src/kj/compat:kj-tls",
         "@capnp-cpp//src/capnp:capnpc",
         "//src/workerd/io",
+        "//src/workerd/api:html-rewriter",
         "//src/workerd/jsg",
     ],
 )

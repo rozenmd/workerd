@@ -5,6 +5,7 @@
 #pragma once
 // Common JSG testing infrastructure
 
+#include "dom-exception.h"
 #include "jsg.h"
 #include "setup.h"
 #include <kj/test.h>
