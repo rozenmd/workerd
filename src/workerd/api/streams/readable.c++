@@ -4,10 +4,8 @@
 
 #include "readable.h"
 #include "writable.h"
-//TODO
-//#include <workerd/jsg/buffersource.h>
-//#include "internal.h"
-//#include <workerd/jsg/value.h>
+#include <workerd/jsg/buffersource.h>
+#include <workerd/jsg/value.h>
 
 namespace workerd::api {
 

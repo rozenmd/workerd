@@ -3,14 +3,9 @@
 //     https://opensource.org/licenses/Apache-2.0
 
 #pragma once
-//TODO
-/*#include "common.h"
+
+#include "common.h"
 #include <kj/function.h>
-#include "internal.h"
-#include "standard.h"
-#include "writable.h"
-#include <workerd/jsg/iterator.h>
-namespace workerd { namespace api { class ReadableStreamInternalController; } }*/
 
 namespace workerd::api {
 

@@ -9,7 +9,6 @@
 #include <workerd/jsg/jsg.h>
 #include <openssl/err.h>
 #include "streams.h"
-#include "streams/internal.h"
 
 namespace workerd::api {
 

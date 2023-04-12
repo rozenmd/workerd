@@ -3,10 +3,6 @@
 //     https://opensource.org/licenses/Apache-2.0
 
 #include "writable.h"
-//TODO: Might be able to remove all
-//#include "readable.h"
-//#include "internal.h"
-//#include <workerd/jsg/value.h>
 
 namespace workerd::api {
 

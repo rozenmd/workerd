@@ -3,7 +3,6 @@
 //     https://opensource.org/licenses/Apache-2.0
 
 #include "standard.h"
-#include "internal.h"
 #include "readable.h"
 #include "writable.h"
 #include <workerd/jsg/buffersource.h>

@@ -4,7 +4,6 @@
 
 #include "blob.h"
 #include "streams.h"
-#include "streams/internal.h"
 #include "util.h"
 
 namespace workerd::api {

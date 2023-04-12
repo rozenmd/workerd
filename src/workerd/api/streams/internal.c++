@@ -5,7 +5,6 @@
 #include "internal.h"
 #include "readable.h"
 #include "writable.h"
-#include <workerd/api/util.h>
 #include <workerd/jsg/jsg.h>
 #include <kj/vector.h>
 

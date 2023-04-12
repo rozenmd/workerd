@@ -10,7 +10,7 @@
 #include <workerd/jsg/iterator.h>
 #include "blob.h"
 #include <workerd/io/compatibility-date.capnp.h>
-
+using kj::uint;
 namespace workerd::api {
 
 namespace url {

@@ -3,6 +3,7 @@
 //     https://opensource.org/licenses/Apache-2.0
 
 #include <kj/test.h>
+#include <kj/encoding.h>
 
 #include <fstream>
 #include <iostream>

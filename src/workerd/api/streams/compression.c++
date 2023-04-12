@@ -3,11 +3,9 @@
 //     https://opensource.org/licenses/Apache-2.0
 
 #include "compression.h"
-#include "internal.h"
 #include <zlib.h>
 #include <deque>
 #include <vector>
-#include <iterator>
 
 namespace workerd::api {
 

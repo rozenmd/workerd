@@ -4,7 +4,6 @@
 
 #include "html-rewriter.h"
 #include "streams.h"
-#include "streams/internal.h"
 #include "util.h"
 #include "c-api/include/lol_html.h"
 #include <workerd/io/io-context.h>

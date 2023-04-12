@@ -10,6 +10,7 @@ filegroup(
         exclude = [
             "**/*test*.c++",
             "html-rewriter.c++",
+            "r2*.c++",
         ],
     ),
     visibility = ["//visibility:public"],
@@ -19,7 +20,7 @@ filegroup(
     name = "hdrs",
     srcs = glob(
         ["**/*.h"],
-        exclude = ["*test*.h"],
+        exclude = ["*test*.h",  "r2*.h"],
     ),
     visibility = ["//visibility:public"],
 )
@@ -39,6 +40,17 @@ wd_cc_library(
     ],
 )
 
+wd_cc_library(
+    name = "r2-api",
+    srcs = ["r2-admin.c++", "r2-bucket.c++", "r2-multipart.c++", "r2-rpc.c++"],
+    hdrs = ["r2-admin.h", "r2-bucket.h", "r2-multipart.h", "r2-rpc.h", "r2.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":r2-api_capnp",
+        "//src/workerd/io",
+    ],
+)
+
 wd_cc_capnp_library(
     name = "r2-api_capnp",
     srcs = ["r2-api.capnp"],
@@ -55,14 +67,23 @@ wd_cc_capnp_library(
     src = f,
     deps = [
         "//src/workerd/io",
-        "//src/workerd/jsg:rtti",
     ],
 ) for f in glob(
     ["**/*-test.c++"],
     exclude = [
         "node/*-test.c++",
+        "api-rtti-test.c++",
     ],
 )]
+
+kj_test(
+    src = "api-rtti-test.c++",
+    deps = [
+        "//src/workerd/io",
+        "//src/workerd/jsg:rtti",
+        ":html-rewriter",
+    ],
+)
 
 kj_test(
     src = "node/buffer-test.c++",

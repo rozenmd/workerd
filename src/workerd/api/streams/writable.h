@@ -4,12 +4,7 @@
 
 #pragma once
 
-// TODO
-//#include "common.h"
-//#include "internal.h"
-//#include "standard.h"
-//#include <kj/memory.h>
-//namespace workerd { namespace api { class WritableStreamInternalController; } }
+#include "common.h"
 
 namespace workerd::api {
 

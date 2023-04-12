@@ -8,7 +8,6 @@
 #include <workerd/jsg/jsg.h>
 #include <workerd/jsg/buffersource.h>
 #include <deque>
-#include <kj/table.h>
 #include <set>
 
 namespace workerd::api {

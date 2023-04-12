@@ -47,14 +47,12 @@ wd_cc_library(
         ":worker-interface",
         "//src/node",
         "//src/workerd/api:analytics-engine_capnp",
-        "//src/workerd/api:r2-api_capnp",
         "//src/workerd/jsg",
         "//src/workerd/util:sqlite",
         "@capnp-cpp//src/kj:kj-async",
         "@capnp-cpp//src/kj/compat:kj-gzip",
         "@capnp-cpp//src/capnp/compat:http-over-capnp",
         "@capnp-cpp//src/capnp:capnp-rpc",
-        "@com_cloudflare_lol_html//:lolhtml",
     ],
 )
 

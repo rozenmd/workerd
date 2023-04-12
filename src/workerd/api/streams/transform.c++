@@ -3,9 +3,8 @@
 //     https://opensource.org/licenses/Apache-2.0
 
 #include "transform.h"
-// TODO
-//#include "standard.h"
-//#include "internal.h"
+#include "standard.h"
+#include "internal.h"
 #include <workerd/jsg/function.h>
 
 namespace workerd::api {
