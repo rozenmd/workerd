@@ -333,13 +333,16 @@ struct Worker {
 
       wrapped @14 :WrappedBinding;
       # Wraps a collection of inner bindings in a common api functionality.
+      
 
       queue @15 :ServiceDesignator;
       # A Queue binding, implemented by the named service. Requests to the
       # namespace will be converted into HTTP requests targetting the given
       # service name.
 
-      # TODO(someday): dispatch, analyticsEngine, other new features
+      analyticsEngine @16 :ServiceDesignator; 
+
+      # TODO(someday): dispatch, other new features
     }
 
     struct Type {
@@ -360,6 +363,7 @@ struct Worker {
         r2Bucket @9 :Void;
         r2Admin @10 :Void;
         queue @11 :Void;
+        analyticsEngine @12 : Void;
       }
     }
 

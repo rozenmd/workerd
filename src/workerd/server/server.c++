@@ -1818,6 +1818,10 @@ static kj::Maybe<WorkerdApiIsolate::Global> createBinding(
       });
     }
 
+    case config::Worker::Binding::ANALYTICS_ENGINE: {
+      //TODO Setup request channel
+      return makeGlobal(Global::AnalyticsEngine{});
+    }
   }
   errorReporter.addError(kj::str(
       errorContext, "has unrecognized type. Was the config compiled with a newer version of "
