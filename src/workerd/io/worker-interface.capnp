@@ -126,6 +126,26 @@ struct QueueResponse @0x90e98932c0bfc0de {
   # List of Message IDs that were explicitly marked as acknowledged
 }
 
+struct HibernatableWebSocketMessage {
+  # TODO(now): Change this as needed
+  ws @0 :Data;
+  # Target websocket identifier.
+
+  sendText @1 :Text;
+  sendData @2 :Data;
+  # Send a websocket message, text or data.
+
+  closeCode @3 :UInt16;
+  closeReason @4 :Text;
+  # Send a websocket close request with reason and code.
+}
+
+struct HibernatableWebSocketResponse {
+  # TODO(now): Change this as needed
+  delivered @0 :Bool;
+  outcome @1 :EventOutcome;
+}
+
 interface EventDispatcher @0xf20697475ec1752d {
   # Interface used to deliver events to a Worker's global event handlers.
 
@@ -164,6 +184,9 @@ interface EventDispatcher @0xf20697475ec1752d {
   obsolete6 @6();
   obsolete7 @7();
   # Deleted methods, do not reuse these numbers.
+
+  hibernatableWebSocketEvent @9 (message :HibernatableWebSocketMessage) -> (result :HibernatableWebSocketResponse);
+  #TODO(now): Adapt parameters to manager code.
 
   # Other methods might be added to handle other kinds of events, e.g. TCP connections, or maybe
   # even native Cap'n Proto RPC eventually.

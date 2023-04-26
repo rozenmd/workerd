@@ -90,7 +90,15 @@ kj::Promise<WorkerInterface::CustomEvent::Result>
     capnp::ByteStreamFactory& byteStreamFactory,
     kj::TaskSet& waitUntilTasks,
     rpc::EventDispatcher::Client dispatcher) {
-  KJ_UNIMPLEMENTED("HibernatableWebSocket event is never called via rpc.");
+  auto req = dispatcher.hibernatableWebSocketMessageRequest();
+  // TODO(now): set correct params to rpc using the params set in HibernatableSocketParams
+
+  waitUntilTasks.add(req.send().ignoreResult());
+
+  // If we care about the event result we need to change this
+  co_return Result {
+    .outcome = workerd::EventOutcome::OK,
+  };
 }
 
 }  // namespace workerd::api
