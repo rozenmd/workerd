@@ -66,8 +66,6 @@ const int8_t unbase64_table[256] =
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
   };
 
-namespace {
-
 template <typename T>
 void SwapBytes(kj::ArrayPtr<kj::byte> bytes) {
   KJ_DASSERT((bytes.size() % sizeof(T)) == 0);
@@ -83,16 +81,6 @@ void SwapBytes(kj::ArrayPtr<kj::byte> bytes) {
     }
   }
 }
-
-enum class Encoding {
-  ASCII,
-  LATIN1,
-  UTF8,
-  UTF16LE,
-  BASE64,
-  BASE64URL,
-  HEX,
-};
 
 Encoding getEncoding(kj::StringPtr encoding) {
   if (encoding == "utf8"_kj) {
@@ -114,6 +102,7 @@ Encoding getEncoding(kj::StringPtr encoding) {
   KJ_UNREACHABLE;
 }
 
+namespace {
 kj::Maybe<uint> tryFromHexDigit(char c) {
   if ('0' <= c && c <= '9') {
     return c - '0';
@@ -213,12 +202,13 @@ uint32_t writeInto(
   }
   KJ_UNREACHABLE;
 }
+} // namespace
 
 kj::Array<kj::byte> decodeStringImpl(
     jsg::Lock& js,
     v8::Local<v8::String> string,
     Encoding encoding,
-    bool strict = false) {
+    bool strict) {
   if (string->Length() == 0) return kj::Array<kj::byte>();
 
   switch (encoding) {
@@ -266,7 +256,7 @@ kj::Array<kj::byte> decodeStringImpl(
   }
   KJ_UNREACHABLE;
 }
-}  // namespace
+//}  // namespace
 
 uint32_t BufferUtil::byteLength(jsg::Lock& js, v8::Local<v8::String> str) {
   // Gets the UTF8 byte length for the given input. We use v8::String
@@ -512,6 +502,7 @@ jsg::Optional<uint32_t> indexOfString(
 
   return result;
 }
+}  // namespace
 
 v8::Local<v8::String> toStringImpl(
     jsg::Lock& js,
@@ -554,8 +545,6 @@ v8::Local<v8::String> toStringImpl(
   }
   KJ_UNREACHABLE;
 }
-
-}  // namespace
 
 jsg::Optional<uint32_t> BufferUtil::indexOf(
     jsg::Lock& js,

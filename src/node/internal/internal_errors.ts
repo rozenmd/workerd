@@ -206,6 +206,18 @@ function addNumericalSeparator(val: string) {
   return `${val.slice(0, i)}${res}`;
 }
 
+export class ERR_CRYPTO_HASH_FINALIZED extends NodeError {
+  constructor() {
+    super("ERR_CRYPTO_HASH_FINALIZED", "Digest already called");
+  }
+}
+
+export class ERR_CRYPTO_HASH_UPDATE_FAILED extends NodeError {
+  constructor() {
+    super("ERR_CRYPTO_HASH_UPDATE_FAILED", "Hash update failed");
+  }
+}
+
 export class ERR_INVALID_ARG_TYPE_RANGE extends NodeRangeError {
   constructor(name: string, expected: string | string[], actual: unknown) {
     const msg = createInvalidArgType(name, expected);

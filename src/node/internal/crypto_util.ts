@@ -41,6 +41,24 @@ import {
     ERR_INVALID_ARG_TYPE,
   } from 'node-internal:internal_errors';
 
+import {
+  validateString,
+} from 'node-internal:validators';
+
+export const kHandle = Symbol('kHandle');
+
+// TODO: Remove, can be harmful
+export function getDefaultEncoding() {
+  return 'buffer';
+}
+
+export function getStringOption(options: any, key: string) {
+    let value;
+    if (options && (value = options[key]) != null)
+      validateString(value, `options.${key}`);
+    return value;
+}
+
 export function getArrayBufferOrView(buffer: Buffer | ArrayBuffer | ArrayBufferView | string, name: string, encoding?: string): Buffer | ArrayBuffer | ArrayBufferView {
   if (isAnyArrayBuffer(buffer))
     return buffer as ArrayBuffer;

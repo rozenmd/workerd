@@ -9,6 +9,14 @@ import {
 export function checkPrimeSync(candidate: ArrayBufferView, num_checks: number): boolean;
 export function randomPrime(size: number, safe: boolean, add?: ArrayBufferView|undefined, rem?: ArrayBufferView|undefined): ArrayBuffer;
 
+// Hash
+export class HashHandle {
+  public constructor(algorithm: string, xofLen: number);
+  update(data: string | ArrayBuffer | DataView, encoding?: string): number;
+  digest(encoding?: string): ArrayBuffer;
+  copy(xofLen: number): HashHandle;
+}
+
 // pbkdf2
 export type ArrayLike = ArrayBuffer|string|Buffer|ArrayBufferView;
 export function getPbkdf(password: ArrayLike, salt: ArrayLike, iterations: number, keylen: number, digest: string): ArrayBuffer;

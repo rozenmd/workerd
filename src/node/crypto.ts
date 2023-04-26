@@ -34,6 +34,8 @@ import {
   checkPrimeSync,
 } from 'node-internal:crypto_random';
 
+import {Hash} from 'node-internal:crypto_hash';
+
 import {
   pbkdf2,
   pbkdf2Sync,
@@ -69,6 +71,8 @@ export {
   generatePrimeSync,
   checkPrime,
   checkPrimeSync,
+  // Hash
+  Hash,
   // Pbkdf2
   pbkdf2,
   pbkdf2Sync,
@@ -85,6 +89,15 @@ export {
   createPrivateKey,
   createPublicKey,
   createSecretKey,
+}
+
+export function createHash(algorithm: string, options?: any): any {
+  return new (Hash as any)(algorithm, options);
+}
+
+export function getHashes() {
+  // TODO: Add the remaining hashes supported in FIPS mode, node's approach looks pretty clunky
+  return ['md5'];
 }
 
 // We do not implement the openssl secure heap.
@@ -135,6 +148,9 @@ export default {
   generatePrimeSync,
   checkPrime,
   checkPrimeSync,
+  // Hash
+  Hash,
+  createHash,
   // Pbkdf2
   pbkdf2,
   pbkdf2Sync,
