@@ -26,6 +26,10 @@
 // LazyTransform is a special type of Transform stream that is lazily loaded.
 // This is used for performance with bi-API-ship: when two APIs are available
 // for the stream, one conventional and one non-conventional.
+
+/* todo: the following is adopted code, enabling linting one day */
+/* eslint-disable */
+
 'use strict';
 
 import {

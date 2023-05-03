@@ -26,6 +26,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+/* todo: the following is adopted code, enabling linting one day */
+/* eslint-disable */
+
 'use strict';
 
 import {
@@ -48,11 +51,11 @@ import {
 export const kHandle = Symbol('kHandle');
 
 // TODO: Remove, can be harmful
-export function getDefaultEncoding() {
+export function getDefaultEncoding() : string {
   return 'buffer';
 }
 
-export function getStringOption(options: any, key: string) {
+export function getStringOption(options: any, key: string) : any {
     let value;
     if (options && (value = options[key]) != null)
       validateString(value, `options.${key}`);

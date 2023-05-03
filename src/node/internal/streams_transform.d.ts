@@ -1,3 +1,6 @@
+/* todo: the following is adopted code, enabling linting one day */
+/* eslint-disable */
+
 // TODO: Need to add TypeScript bindings for Duplex and underlying types, or find a workaround
 
 /*export class Transform extends Duplex {

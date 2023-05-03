@@ -149,7 +149,7 @@ public:
 
 #define EW_NODE_CRYPTO_ISOLATE_TYPES                   \
     api::node::CryptoImpl,                             \
-    api::node::CryptoImpl::HashHandle                  \
+    api::node::CryptoImpl::HashHandle,                  \
     api::node::CryptoImpl::KeyExportOptions,           \
     api::node::CryptoImpl::AsymmetricKeyDetails,       \
     api::node::CryptoImpl::GenerateKeyPairOptions,     \

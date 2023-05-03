@@ -23,6 +23,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+/* todo: the following is adopted code, enabling linting one day */
+/* eslint-disable */
+
 'use strict';
 
 import { default as cryptoImpl } from 'node-internal:crypto';
@@ -63,7 +66,7 @@ const kState = Symbol('kState');
 const kFinalized = Symbol('kFinalized');
 
 // TODO: How to turn Hash into an actual type so we don't have to use any?
-export function Hash(this: any, algorithm: string, options: any = {}) {
+export function Hash(this: any, algorithm: string, options: any = {}) : any {
   validateString(algorithm, 'algorithm');
   const xofLen = typeof options === 'object' && options !== null ?
     options.outputLength : undefined;
@@ -90,7 +93,7 @@ Hash.prototype.copy = function copy(options: any): any {
 if (xofLen !== undefined)
   validateUint32(xofLen, 'options.outputLength');
 
-  let h = new (Hash as any)('md5');
+  const h = new (Hash as any)('md5');
   h[kHandle] = this[kHandle].copy(xofLen as number);
   return h;
 };

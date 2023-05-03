@@ -12,9 +12,9 @@ export function randomPrime(size: number, safe: boolean, add?: ArrayBufferView|u
 // Hash
 export class HashHandle {
   public constructor(algorithm: string, xofLen: number);
-  update(data: string | ArrayBuffer | DataView, encoding?: string): number;
-  digest(encoding?: string): ArrayBuffer;
-  copy(xofLen: number): HashHandle;
+  public update(data: string | ArrayBuffer | DataView, encoding?: string): number;
+  public digest(encoding?: string): ArrayBuffer;
+  public copy(xofLen: number): HashHandle;
 }
 
 // pbkdf2
