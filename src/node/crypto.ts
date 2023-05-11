@@ -34,7 +34,11 @@ import {
   checkPrimeSync,
 } from 'node-internal:crypto_random';
 
-import {Hash} from 'node-internal:crypto_hash';
+import {
+  createHash,
+  Hash,
+  HashOptions,
+} from 'node-internal:crypto_hash';
 
 import {
   pbkdf2,
@@ -72,7 +76,9 @@ export {
   checkPrime,
   checkPrimeSync,
   // Hash
+  createHash,
   Hash,
+  HashOptions,
   // Pbkdf2
   pbkdf2,
   pbkdf2Sync,
@@ -89,10 +95,6 @@ export {
   createPrivateKey,
   createPublicKey,
   createSecretKey,
-}
-
-export function createHash(algorithm: string, options?: any): any {
-  return new (Hash as any)(algorithm, options);
 }
 
 export function getHashes() {

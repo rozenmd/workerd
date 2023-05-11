@@ -23,123 +23,141 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-/* todo: the following is adopted code, enabling linting one day */
-/* eslint-disable */
-
-'use strict';
-
 import { default as cryptoImpl } from 'node-internal:crypto';
 
 import {
-    kHandle,
+  kHandle,
+  kFinalized,
 } from 'node-internal:crypto_util';
 
 import {
-    Buffer
+  Buffer
 } from 'node-internal:internal_buffer';
 
 import {
-    ERR_CRYPTO_HASH_FINALIZED,
-    ERR_CRYPTO_HASH_UPDATE_FAILED,
-    ERR_INVALID_ARG_TYPE,
+  ERR_CRYPTO_HASH_FINALIZED,
+  ERR_CRYPTO_HASH_UPDATE_FAILED,
+  ERR_INVALID_ARG_TYPE,
 } from 'node-internal:internal_errors';
 
 import {
-    validateEncoding,
-    validateString,
-    validateUint32,
+  validateEncoding,
+  validateString,
+  validateUint32,
 } from 'node-internal:validators';
 
 import {
-    normalizeEncoding
+  normalizeEncoding
 } from 'node-internal:internal_utils';
 
 import {
-    isArrayBufferView
+  isArrayBufferView
 } from 'node-internal:internal_types';
 
+// TODO
 import {
-  LazyTransform
-} from 'node-internal:lazy_transform';
+  TransformDummy,
+  TransformOptionsDummy,
+} from 'node-internal:streams_transform';
 
-const kState = Symbol('kState');
-const kFinalized = Symbol('kFinalized');
+export interface HashOptions extends TransformOptionsDummy {
+  outputLength?: number;
+}
 
-// TODO: How to turn Hash into an actual type so we don't have to use any?
-export function Hash(this: any, algorithm: string, options: any = {}) : any {
+export function createHash(algorithm: string, options?: HashOptions): Hash {
   validateString(algorithm, 'algorithm');
   const xofLen = typeof options === 'object' && options !== null ?
     options.outputLength : undefined;
   if (xofLen !== undefined)
     validateUint32(xofLen, 'options.outputLength');
-  this[kHandle] = new cryptoImpl.HashHandle(algorithm, xofLen as number);
-  this[kState] = {
-    [kFinalized]: false,
-  };
-  typeof Reflect.apply(LazyTransform, this, [options]);
+  let hHandle = new cryptoImpl.HashHandle(algorithm, xofLen as number);
+  return Hash.from(hHandle);
 }
 
-typeof Object.setPrototypeOf(Hash.prototype, LazyTransform.prototype);
-typeof Object.setPrototypeOf(Hash, LazyTransform);
+export class Hash extends TransformDummy {
+  [kHandle]: cryptoImpl.HashHandle;
+  [kFinalized]: boolean;
 
-// TODO: Ugly workaround
-Hash.prototype.copy = function copy(options: any): any {
-  const state = this[kState];
-  if (state[kFinalized])
-    throw new ERR_CRYPTO_HASH_FINALIZED();
-
-  const xofLen = typeof options === 'object' && options !== null ?
-  options.outputLength : undefined;
-if (xofLen !== undefined)
-  validateUint32(xofLen, 'options.outputLength');
-
-  const h = new (Hash as any)('md5');
-  h[kHandle] = this[kHandle].copy(xofLen as number);
-  return h;
-};
-
-Hash.prototype._transform = function _transform(chunk: Buffer | string | any, encoding: string, callback: Function) {
-  this[kHandle].update(chunk, encoding);
-  callback();
-};
-
-Hash.prototype._flush = function _flush(callback: Function) {
-  this.push(this[kHandle].digest());
-  callback();
-};
-
-Hash.prototype.update = function update(data: string | Buffer | DataView, encoding?: string) {
-  encoding = encoding || 'utf8';
-  if (encoding != undefined && encoding === 'buffer') {
-    encoding = undefined;
+  constructor() {
+    // KeyObjects cannot be created with new ... use one of the
+    // create or generate methods, or use from to get from a
+    // CryptoKey.
+    //TODO
+    super();
+    throw new Error('Illegal constructor');
   }
 
-  const state = this[kState];
-  if (state[kFinalized])
-    throw new ERR_CRYPTO_HASH_FINALIZED();
-
-  if (typeof data === 'string') {
-    validateEncoding(data, encoding!); encoding = normalizeEncoding(encoding!);
-  } else if (!isArrayBufferView(data)) {
-    throw new ERR_INVALID_ARG_TYPE(
-      'data', ['string', 'Buffer', 'TypedArray', 'DataView'], data);
+  // TODO: How would I make this externally invisible?
+  static from(h: cryptoImpl.HashHandle) : Hash {
+    return Reflect.construct(function(this: Hash) {
+      this[kHandle] = h;
+      this[kFinalized] = false;
+    }, [], Hash);
   }
 
-  if (!this[kHandle].update(data, encoding))
-    throw new ERR_CRYPTO_HASH_UPDATE_FAILED();
-  return this;
-};
+  copy(options: HashOptions): Hash {
+    if (this[kFinalized])
+      throw new ERR_CRYPTO_HASH_FINALIZED();
 
-Hash.prototype.digest = function digest(outputEncoding?: string): Buffer | string {
-  const state = this[kState];
-  if (state[kFinalized])
-    throw new ERR_CRYPTO_HASH_FINALIZED();
-  if (outputEncoding != undefined && outputEncoding === 'buffer') {
-    outputEncoding = undefined;
+    const xofLen = typeof options === 'object' && options !== null ?
+    options.outputLength : undefined;
+    if (xofLen !== undefined)
+      validateUint32(xofLen, 'options.outputLength');
+
+    let handleCopy = this[kHandle].copy(xofLen as number);
+    return Hash.from(handleCopy);
+  };
+
+  override _flush(this: Hash, callback: Function) {
+    this.push(this[kHandle].digest());
+    callback();
+  };
+
+  override _transform(chunk: Buffer | string | any, encoding: string, callback: Function) {
+    this[kHandle].update(chunk, encoding);
+    callback();
+  };
+
+  update(data: string | Buffer | ArrayBufferView, encoding?: string): Hash {
+    encoding = encoding || 'utf8';
+    if (encoding != undefined && encoding === 'buffer') {
+      encoding = undefined;
+    }
+
+    if (this[kFinalized])
+      throw new ERR_CRYPTO_HASH_FINALIZED();
+
+    if (typeof data === 'string') {
+      validateEncoding(data, encoding!); encoding = normalizeEncoding(encoding!);
+    } else if (!isArrayBufferView(data)) {
+      throw new ERR_INVALID_ARG_TYPE(
+        'data', ['string', 'Buffer', 'TypedArray', 'DataView'], data);
+    }
+
+    if (!this[kHandle].update(data, encoding))
+      throw new ERR_CRYPTO_HASH_UPDATE_FAILED();
+    return this;
   }
 
-  // Explicit conversion for backward compatibility.
-  const ret = this[kHandle].digest(outputEncoding);
-  state[kFinalized] = true;
-  return ret;
+  digest(): Buffer;
+  digest(outputEncoding: string): string;
+  digest(outputEncoding?: string): Buffer | string
+  {
+    if (this[kFinalized])
+      throw new ERR_CRYPTO_HASH_FINALIZED();
+    if (outputEncoding != undefined && outputEncoding === 'buffer') {
+      outputEncoding = undefined;
+    }
+
+    // Explicit conversion for backward compatibility.
+    const ret = this[kHandle].digest(outputEncoding);
+    this[kFinalized] = true;
+    if (outputEncoding) {
+      // TODO: Encode text in JS, current approach in C++ is pretty wonky
+      return Buffer.from(ret);
+    } else {
+      return Buffer.from(ret);
+    }
+  };
+
 };

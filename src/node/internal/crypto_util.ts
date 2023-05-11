@@ -49,6 +49,7 @@ import {
 } from 'node-internal:validators';
 
 export const kHandle = Symbol('kHandle');
+export const kFinalized = Symbol('kFinalized');
 
 // TODO: Remove, can be harmful
 export function getDefaultEncoding() : string {
