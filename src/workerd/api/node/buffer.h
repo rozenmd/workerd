@@ -9,30 +9,6 @@
 
 namespace workerd::api::node {
 
-enum class Encoding {
-  ASCII,
-  LATIN1,
-  UTF8,
-  UTF16LE,
-  BASE64,
-  BASE64URL,
-  HEX,
-};
-
-Encoding getEncoding(kj::StringPtr encoding);
-kj::Array<kj::byte> decodeStringImpl(
-    jsg::Lock& js,
-    v8::Local<v8::String> string,
-    Encoding encoding,
-    bool strict = false);
-
-v8::Local<v8::String> toStringImpl(
-    jsg::Lock& js,
-    kj::ArrayPtr<kj::byte> bytes,
-    uint32_t start,
-    uint32_t end,
-    Encoding encoding);
-
 class BufferUtil final: public jsg::Object {
   // Implements utilities in support of the Node.js Buffer
 public:

@@ -1,6 +1,7 @@
 // Copyright (c) 2017-2022 Cloudflare, Inc.
 // Licensed under the Apache 2.0 license found in the LICENSE file or at:
 //     https://opensource.org/licenses/Apache-2.0
+
 import {
   Buffer,
 } from 'node-internal:internal_buffer';
@@ -12,8 +13,8 @@ export function randomPrime(size: number, safe: boolean, add?: ArrayBufferView|u
 // Hash
 export class HashHandle {
   public constructor(algorithm: string, xofLen: number);
-  public update(data: string | Buffer | ArrayBufferView, encoding?: string): number;
-  public digest(encoding?: string): ArrayBuffer;
+  public update(data: Buffer | ArrayBufferView): number;
+  public digest(): ArrayBuffer;
   public copy(xofLen: number): HashHandle;
 }
 

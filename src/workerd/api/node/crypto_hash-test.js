@@ -1,8 +1,8 @@
 'use strict';
 
-/*const fs = require('fs');
+// const fs = require('fs');
 
-const fixtures = require('../common/fixtures');*/
+// const fixtures = require('../common/fixtures');
 
 import {
   Buffer,
@@ -15,6 +15,7 @@ let cryptoType;
 let digest;
 
 // Dummy function to enable testing
+// TODO: Wrap all into tests
 export const hashCheck = {
   test(ctrl, env, ctx) {
   }
@@ -25,7 +26,8 @@ const a2 = crypto.createHash('sha256').update('Test123').digest('base64');
 const a3 = crypto.createHash('sha512').update('Test123').digest(); // buffer
 const a4 = crypto.createHash('sha1').update('Test123').digest('buffer');
 
-// TODO: Add support for the remaining tests. This will require actually basing the test class on stream.transform.
+// TODO: Add support for the remaining tests. This will require actually basing the test class on
+// stream.transform.
 /*
 // stream interface
 let a5 = crypto.createHash('sha512');
@@ -48,16 +50,15 @@ a8.write('');
 a8.end();
 a8 = a8.read();
 */
-//if (!common.hasFipsCrypto) {
-  cryptoType = 'md5';
-  digest = 'latin1';
-  const a0 = crypto.createHash(cryptoType).update('Test123').digest(digest);
-  assert.strictEqual(
-    a0,
-    'h\u00ea\u00cb\u0097\u00d8o\fF!\u00fa+\u000e\u0017\u00ca\u00bd\u008c',
-    `${cryptoType} with ${digest} digest failed to evaluate to expected hash`
-  );
-//}
+
+cryptoType = 'md5';
+digest = 'latin1';
+const a0 = crypto.createHash(cryptoType).update('Test123').digest(digest);
+assert.strictEqual(
+  a0,
+  'h\u00ea\u00cb\u0097\u00d8o\fF!\u00fa+\u000e\u0017\u00ca\u00bd\u008c',
+  `${cryptoType} with ${digest} digest failed to evaluate to expected hash`
+);
 
 cryptoType = 'md5';
 digest = 'hex';
@@ -71,7 +72,8 @@ assert.strictEqual(
   a2,
   '2bX1jws4GYKTlxhloUB09Z66PoJZW+y+hq5R8dnx9l4=',
   `${cryptoType} with ${digest} digest failed to evaluate to expected hash`);
-/*cryptoType = 'sha512';
+
+cryptoType = 'sha512';
 digest = 'latin1';
 assert.deepStrictEqual(
   a3,
@@ -82,8 +84,9 @@ assert.deepStrictEqual(
     '\u00d7\u00d6\u00a2\u00a8\u0085\u00e3<\u0083\u009c\u0093' +
     '\u00c2\u0006\u00da0\u00a1\u00879(G\u00ed\'',
     'latin1'),
-  `${cryptoType} with ${digest} digest failed to evaluate to expected hash`);*/
-/*cryptoType = 'sha1';
+  `${cryptoType} with ${digest} digest failed to evaluate to expected hash`);
+
+cryptoType = 'sha1';
 digest = 'hex';
 assert.deepStrictEqual(
   a4,
@@ -97,7 +100,8 @@ assert.deepStrictEqual(
   a4,
   Buffer.from('8308651804FACB7B9AF8FFC53A33A22D6A1C8AC2', 'hex'),
   `${cryptoType} with ${digest} digest failed to evaluate to expected hash`
-);*/
+);
+
 /*
 // Stream interface should produce the same result.
 assert.deepStrictEqual(a5, a3);
@@ -105,10 +109,12 @@ assert.deepStrictEqual(a6, a3);
 assert.notStrictEqual(a7, undefined);
 assert.notStrictEqual(a8, undefined);
 */
+
 // Test multiple updates to same hash
 const h1 = crypto.createHash('sha1').update('Test123').digest('hex');
 const h2 = crypto.createHash('sha1').update('Test').update('123').digest('hex');
 assert.strictEqual(h1, h2);
+
 /*
 // Test hashing for binary files
 const fn = fixtures.path('sample.png');
@@ -177,10 +183,10 @@ assert.throws(
     name: 'Error'
   });
 
-/*assert.strictEqual(
+assert.strictEqual(
   crypto.createHash('sha256').update('test').digest('ucs2'),
-  crypto.createHash('sha256').update('test').digest().toString('ucs2'));*/
-  //crypto.createHash();
+  crypto.createHash('sha256').update('test').digest().toString('ucs2'));
+
 assert.throws(
   () => crypto.createHash(),
   {
@@ -198,65 +204,8 @@ assert.throws(
                                    ' when called without `new`');
 }*/
 
-// Disabled: shake* is not supported in FIPS
-// Test XOF hash functions and the outputLength option.
+// shake*-based tests for XOF hash function are not supported in FIPS and have been removed.
 {
-
-  // Default outputLengths.
-  /*assert.strictEqual(crypto.createHash('shake128').digest('hex'),
-                     '7f9c2ba4e88f827d616045507605853e');
-  assert.strictEqual(crypto.createHash('shake128', null).digest('hex'),
-                     '7f9c2ba4e88f827d616045507605853e');
-  assert.strictEqual(crypto.createHash('shake256').digest('hex'),
-                     '46b9dd2b0ba88d13233b3feb743eeb24' +
-                     '3fcd52ea62b81b82b50c27646ed5762f');
-  assert.strictEqual(crypto.createHash('shake256', { outputLength: 0 })
-                           .copy()  // Default outputLength.
-                           .digest('hex'),
-                     '46b9dd2b0ba88d13233b3feb743eeb24' +
-                     '3fcd52ea62b81b82b50c27646ed5762f');
-
-  // Short outputLengths.
-  assert.strictEqual(crypto.createHash('shake128', { outputLength: 0 })
-                           .digest('hex'),
-                     '');
-  assert.strictEqual(crypto.createHash('shake128', { outputLength: 5 })
-                           .copy({ outputLength: 0 })
-                           .digest('hex'),
-                     '');
-  assert.strictEqual(crypto.createHash('shake128', { outputLength: 5 })
-                           .digest('hex'),
-                     '7f9c2ba4e8');
-  assert.strictEqual(crypto.createHash('shake128', { outputLength: 0 })
-                           .copy({ outputLength: 5 })
-                           .digest('hex'),
-                     '7f9c2ba4e8');
-  assert.strictEqual(crypto.createHash('shake128', { outputLength: 15 })
-                           .digest('hex'),
-                     '7f9c2ba4e88f827d61604550760585');
-  assert.strictEqual(crypto.createHash('shake256', { outputLength: 16 })
-                           .digest('hex'),
-                     '46b9dd2b0ba88d13233b3feb743eeb24');
-
-  // Large outputLengths.
-  assert.strictEqual(crypto.createHash('shake128', { outputLength: 128 })
-                           .digest('hex'),
-                     '7f9c2ba4e88f827d616045507605853e' +
-                     'd73b8093f6efbc88eb1a6eacfa66ef26' +
-                     '3cb1eea988004b93103cfb0aeefd2a68' +
-                     '6e01fa4a58e8a3639ca8a1e3f9ae57e2' +
-                     '35b8cc873c23dc62b8d260169afa2f75' +
-                     'ab916a58d974918835d25e6a435085b2' +
-                     'badfd6dfaac359a5efbb7bcc4b59d538' +
-                     'df9a04302e10c8bc1cbf1a0b3a5120ea');
-  const superLongHash = crypto.createHash('shake256', {
-    outputLength: 1024 * 1024
-  }).update('The message is shorter than the hash!')
-    .digest('hex');
-  assert.strictEqual(superLongHash.length, 2 * 1024 * 1024);
-  assert.ok(superLongHash.endsWith('193414035ddba77bf7bba97981e656ec'));
-  assert.ok(superLongHash.startsWith('a2a28dbc49cfd6e5d6ceea3d03e77748'));
-*/
   // Non-XOF hash functions should accept valid outputLength options as well.
   assert.strictEqual(crypto.createHash('sha224', { outputLength: 28 })
                            .digest('hex'),

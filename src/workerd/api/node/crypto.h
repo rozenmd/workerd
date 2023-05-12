@@ -21,8 +21,8 @@ public:
       ~HashHandle();
 
       jsg::Ref<HashHandle> copy(jsg::Lock& js, kj::Maybe<uint32_t> xofLen);
-      int update(jsg::Lock& js, kj::OneOf<v8::Local<v8::String>, kj::Array<kj::byte>> data, kj::Maybe<kj::String> encoding);
-      kj::OneOf<kj::Array<kj::byte>, v8::Local<v8::String>> digest(jsg::Lock& js, kj::Maybe<kj::String> encoding);
+      int update(jsg::Lock& js, kj::Array<kj::byte> data);
+      kj::Array<kj::byte> digest(jsg::Lock& js);
       static jsg::Ref<HashHandle> constructor(jsg::Lock& js, kj::String algorithm, kj::Maybe<uint32_t> xofLen);
 
       JSG_RESOURCE_TYPE(HashHandle) {
@@ -32,6 +32,8 @@ public:
       };
 
     private:
+      void checkDigestLength(const EVP_MD* md, kj::Maybe<uint32_t> xofLen);
+
       EVP_MD_CTX* md_ctx;
       unsigned md_len;
   };
