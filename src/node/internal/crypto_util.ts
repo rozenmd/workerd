@@ -26,9 +26,6 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-/* todo: the following is adopted code, enabling linting one day */
-/* eslint-disable */
-
 'use strict';
 
 import {
@@ -44,24 +41,8 @@ import {
     ERR_INVALID_ARG_TYPE,
   } from 'node-internal:internal_errors';
 
-import {
-  validateString,
-} from 'node-internal:validators';
-
 export const kHandle = Symbol('kHandle');
 export const kFinalized = Symbol('kFinalized');
-
-// TODO: Remove, can be harmful
-export function getDefaultEncoding() : string {
-  return 'buffer';
-}
-
-export function getStringOption(options: any, key: string) : any {
-    let value;
-    if (options && (value = options[key]) != null)
-      validateString(value, `options.${key}`);
-    return value;
-}
 
 export function getArrayBufferOrView(buffer: Buffer | ArrayBuffer | ArrayBufferView | string, name: string, encoding?: string): Buffer | ArrayBuffer | ArrayBufferView {
   if (isAnyArrayBuffer(buffer))

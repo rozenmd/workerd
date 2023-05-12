@@ -80,6 +80,7 @@ export function createHash(algorithm: string, options?: HashOptions): Hash {
 
 // export class Hash extends TransformDummy {
 export class Hash {
+  // TODO: These may need more complex handling when inheriting from stream.Transform
   private [kHandle]: cryptoImpl.HashHandle;
   private [kFinalized]: boolean;
 
