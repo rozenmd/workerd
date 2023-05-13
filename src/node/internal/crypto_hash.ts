@@ -84,13 +84,23 @@ export class Hash {
   private [kHandle]: cryptoImpl.HashHandle;
   private [kFinalized]: boolean;
 
-  constructor() {
+  // TODO: Need to have `crypto.Hash(<>)` work while rejecting `new crypto.Hash(<>)`
+  constructor(algorithm: string, options?: HashOptions) {
     // KeyObjects cannot be created with new ... use one of the
     // create or generate methods, or use from to get from a
     // CryptoKey.
     // TODO
     // super();
-    throw new Error('Illegal constructor');
+    //throw new Error('Illegal constructor');
+    validateString(algorithm, 'algorithm');
+    const xofLen = typeof options === 'object' && options !== null ?
+      options.outputLength : undefined;
+    if (xofLen !== undefined)
+      validateUint32(xofLen, 'options.outputLength');
+    //const hHandle = new cryptoImpl.HashHandle(algorithm, xofLen as number);
+    //return Hash.from(hHandle);
+    this[kHandle] = new cryptoImpl.HashHandle(algorithm, xofLen as number);
+    this[kFinalized] = false;
   }
 
   // TODO: How would I make this externally invisible?
