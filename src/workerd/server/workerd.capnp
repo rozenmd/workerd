@@ -340,7 +340,8 @@ struct Worker {
       # namespace will be converted into HTTP requests targetting the given
       # service name.
 
-      analyticsEngine @16 :ServiceDesignator; 
+      analyticsEngine @16 :AnalyticsEngineBinding; 
+      # An Analytics Engine binding
 
       # TODO(someday): dispatch, other new features
     }
@@ -456,6 +457,20 @@ struct Worker {
       # Inner bindings that will be created and passed in the env dictionary.
       # These bindings shall be used to implement end-user api, and are not available to the
       # binding consumers unless "re-exported" in wrapBindings function.
+    }
+
+    struct AnalyticsEngineBinding { 
+    # This binding is subject to change and requires the `--experimental` flag
+    # A binding for Analytics Engine. Allows workers to store information through Analytics Engine Events.
+
+      dataset @0: Text;
+      # Name of analytics engine dataset
+
+      schemaVersion @1 :Int64;
+      # Version of AnlyticsEngineEvent schema
+
+      handler @2 :ServiceDesignator;
+      # Service that workerd will forward AnalyticsEngineEvents to, currently it will forward the event in the body of HTTP requests. This is subject to change in the future
     }
   }
 

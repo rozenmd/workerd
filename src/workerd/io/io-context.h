@@ -840,7 +840,7 @@ public:
     return localCapSet;
   }
 
-  void writeLogfwdr(uint channel, kj::FunctionParam<void(capnp::AnyPointer::Builder)> buildMessage);
+  void writeLogfwdr(uint channel, kj::FunctionParam<void(capnp::AnyPointer::Builder)> buildMessage, jsg::Lock& js);
 
 private:
   ThreadContext& thread;

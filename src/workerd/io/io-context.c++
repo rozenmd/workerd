@@ -538,6 +538,7 @@ IoContext::PendingEvent::~PendingEvent() noexcept(false) {
 }
 
 kj::Own<void> IoContext::registerPendingEvent() {
+
   if (actor != nullptr) {
     // Actors don't use the pending event system, because different requests to the same Actor are
     // explicitly allowed to resolve each other's promises.
@@ -1385,9 +1386,11 @@ jsg::Promise<kj::Maybe<IoOwn<kj::AsyncInputStream>>> IoContext::makeCachePutStre
 }
 
 void IoContext::writeLogfwdr(uint channel,
-    kj::FunctionParam<void(capnp::AnyPointer::Builder)> buildMessage) {
-  addWaitUntil(getIoChannelFactory().writeLogfwdr(channel, kj::mv(buildMessage))
-      .attach(registerPendingEvent()));
+    kj::FunctionParam<void(capnp::AnyPointer::Builder)> buildMessage, jsg::Lock& js) {
+
+  auto promise = getIoChannelFactory().writeLogfwdr(channel, kj::mv(buildMessage)).attach(registerPendingEvent());
+
+  addWaitUntil(awaitJs(awaitIo(js, kj::mv(promise))));
 }
 
 void IoContext::requireCurrentOrThrowJs() {

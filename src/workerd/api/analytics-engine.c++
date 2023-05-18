@@ -37,6 +37,6 @@ void AnalyticsEngine::writeDataPoint(jsg::Lock& js,
         setDoubles<api::AnalyticsEngineEvent::Builder>(aeEvent, *doubles, errorPrefix);
       }
     }
-  });
+  }, js);
 }
 }  // namespace workerd::api

@@ -556,7 +556,8 @@ static v8::Local<v8::Value> createBindingValue(
     }
 
     KJ_CASE_ONEOF(ns, Global::AnalyticsEngine) {
-        value = lock.wrap(context, jsg::alloc<api::AnalyticsEngine>(ns.logfwdrChannel, kj::str(ns.dataset), ns.version, ownerId));
+        // Use subrequestChannel as logfwdrChannel
+        value = lock.wrap(context, jsg::alloc<api::AnalyticsEngine>(ns.subrequestChannel, kj::str(ns.dataset), ns.version, ownerId));
     }
 
     KJ_CASE_ONEOF(text, kj::String) {

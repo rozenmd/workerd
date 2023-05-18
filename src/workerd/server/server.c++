@@ -9,6 +9,8 @@
 #include <kj/compat/url.h>
 #include <kj/encoding.h>
 #include <kj/map.h>
+#include <capnp/message.h>
+#include <capnp/compat/json.h>
 #include <workerd/io/worker-interface.h>
 #include <workerd/io/worker-entrypoint.h>
 #include <workerd/io/worker.h>
@@ -21,6 +23,7 @@
 #include <openssl/pem.h>
 #include <workerd/io/actor-cache.h>
 #include <workerd/io/actor-sqlite.h>
+#include <workerd/util/http-util.h>
 #include <workerd/api/actor-state.h>
 #include "workerd-api.h"
 
@@ -1487,7 +1490,50 @@ private:
 
   kj::Promise<void> writeLogfwdr(uint channel,
       kj::FunctionParam<void(capnp::AnyPointer::Builder)> buildMessage) override {
-    KJ_FAIL_REQUIRE("no logging channels");
+    auto& context = IoContext::current();
+
+    auto headers = kj::HttpHeaders(context.getHeaderTable());
+    auto client = context.getHttpClient(channel, true, nullptr, "writeLogfwdr"_kj);
+
+    kj::Url url;
+    url.scheme = kj::str("https");
+    url.host = kj::str("fake-host");
+    auto urlStr = url.toString(kj::Url::Context::HTTP_PROXY_REQUEST);
+ 
+    capnp::MallocMessageBuilder requestMessage;
+    auto requestBuilder = requestMessage.initRoot<capnp::AnyPointer>();
+  
+    buildMessage(requestBuilder);
+    capnp::JsonCodec json;
+    auto requestJson = json.encode(requestBuilder.getAs<api::AnalyticsEngineEvent>());
+
+    return context.waitForOutputLocks().then([client = kj::mv(client), urlStr = kj::mv(urlStr),
+      requestJson = kj::mv(requestJson), headers = kj::mv(headers)]() mutable {
+      KJ_LOG(WARNING, requestJson);
+      auto innerReq = client->request(kj::HttpMethod::POST, urlStr, headers, requestJson.size());
+
+      struct RefcountedWrapper: public kj::Refcounted {
+        explicit RefcountedWrapper(kj::Own<kj::HttpClient> client): client(kj::mv(client)) {}
+        kj::Own<kj::HttpClient> client;
+      };
+      auto rcClient = kj::refcounted<RefcountedWrapper>(kj::mv(client));
+      auto req = attachToRequest(kj::mv(innerReq), kj::mv(rcClient));
+
+      return req.body->write(requestJson.begin(), requestJson.size()).attach(kj::mv(requestJson), kj::mv(req.body))
+      .then([resp = kj::mv(req.response)]() mutable {
+          KJ_LOG(WARNING, "WROTE BODY");
+          return resp.then([](kj::HttpClient::Response&& response) mutable {
+              KJ_LOG(WARNING, "Made REQUEST");
+              if (response.statusCode < 200 || response.statusCode >= 300) { 
+                  KJ_LOG(WARNING, "BAD RESPONSE");
+                   kj::throwFatalException(kj::Exception(kj::Exception::Type::FAILED, __FILE__, __LINE__,
+                      kj::str(JSG_EXCEPTION(Error) ": writeLogfwdr failed: ", response.statusCode, ' ', response.statusText)));
+              }
+
+              return response.body->readAllBytes().attach(kj::mv(response.body)).ignoreResult();
+          });
+      });
+    });
   }
 
   kj::Own<ActorChannel> getGlobalActor(uint channel, const ActorIdFactory::ActorId& id,
@@ -1819,8 +1865,19 @@ static kj::Maybe<WorkerdApiIsolate::Global> createBinding(
     }
 
     case config::Worker::Binding::ANALYTICS_ENGINE: {
-      //TODO Setup request channel
-      return makeGlobal(Global::AnalyticsEngine{});
+      auto ae = binding.getAnalyticsEngine();
+
+      uint channel = (uint)subrequestChannels.size() + IoContext::SPECIAL_SUBREQUEST_CHANNEL_COUNT;
+      subrequestChannels.add(FutureSubrequestChannel {
+        ae.getHandler(),
+        kj::mv(errorContext)
+      });
+
+      return makeGlobal(Global::AnalyticsEngine{
+        .subrequestChannel = channel,
+        .dataset = kj::str(ae.getDataset()),
+        .version = ae.getSchemaVersion(),
+      });
     }
   }
   errorReporter.addError(kj::str(

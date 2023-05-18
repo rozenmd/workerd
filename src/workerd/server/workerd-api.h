@@ -141,12 +141,12 @@ public:
       }
     };
     struct AnalyticsEngine {
-      uint logfwdrChannel;
+      uint subrequestChannel;
       kj::String dataset;
       int64_t version;
       AnalyticsEngine clone() const {
         return AnalyticsEngine {
-          .logfwdrChannel = logfwdrChannel,
+          .subrequestChannel = subrequestChannel,
           .dataset = kj::str(dataset),
           .version = version
         };
