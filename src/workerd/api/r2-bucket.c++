@@ -306,7 +306,8 @@ static bool isQuotedEtag(kj::StringPtr etag) {
 }
 
 jsg::Promise<kj::Maybe<jsg::Ref<R2Bucket::HeadResult>>> R2Bucket::head(
-    jsg::Lock& js, kj::String name, const jsg::TypeHandler<jsg::Ref<R2Error>>& errorType) {
+    jsg::Lock& js, kj::String name, const jsg::TypeHandler<jsg::Ref<R2Error>>& errorType,
+    CompatibilityFlags::Reader flags) {
   return js.evalNow([&] {
     auto& context = IoContext::current();
 
@@ -326,7 +327,8 @@ jsg::Promise<kj::Maybe<jsg::Ref<R2Bucket::HeadResult>>> R2Bucket::head(
     auto requestJson = json.encode(requestBuilder);
     kj::StringPtr components[2];
     auto path = fillR2Path(components, adminAccount, adminBucket);
-    auto promise = doR2HTTPGetRequest(kj::mv(client), kj::mv(requestJson), path, jwt);
+    auto promise = doR2HTTPGetRequest(kj::mv(client), kj::mv(requestJson), path, jwt,
+        flags);
 
     return context.awaitIo(kj::mv(promise), [&errorType](R2Result r2Result) {
       return parseObjectMetadata<HeadResult>("head", r2Result, errorType);
@@ -339,7 +341,7 @@ R2Bucket::FeatureFlags::FeatureFlags(CompatibilityFlags::Reader featureFlags)
 
 jsg::Promise<kj::OneOf<kj::Maybe<jsg::Ref<R2Bucket::GetResult>>, jsg::Ref<R2Bucket::HeadResult>>>
 R2Bucket::get(jsg::Lock& js, kj::String name, jsg::Optional<GetOptions> options,
-    const jsg::TypeHandler<jsg::Ref<R2Error>>& errorType) {
+    const jsg::TypeHandler<jsg::Ref<R2Error>>& errorType, CompatibilityFlags::Reader flags) {
   return js.evalNow([&] {
     auto& context = IoContext::current();
 
@@ -362,7 +364,8 @@ R2Bucket::get(jsg::Lock& js, kj::String name, jsg::Optional<GetOptions> options,
     auto requestJson = json.encode(requestBuilder);
     kj::StringPtr components[2];
     auto path = fillR2Path(components, adminAccount, adminBucket);
-    auto promise = doR2HTTPGetRequest(kj::mv(client), kj::mv(requestJson), path, jwt);
+    auto promise = doR2HTTPGetRequest(kj::mv(client), kj::mv(requestJson), path, jwt,
+        flags);
 
     return context.awaitIo(kj::mv(promise), [&context, &errorType](R2Result r2Result)
         -> kj::OneOf<kj::Maybe<jsg::Ref<GetResult>>, jsg::Ref<HeadResult>> {
@@ -707,7 +710,7 @@ jsg::Promise<void> R2Bucket::delete_(jsg::Lock& js, kj::OneOf<kj::String, kj::Ar
 
 jsg::Promise<R2Bucket::ListResult> R2Bucket::list(
     jsg::Lock& js, jsg::Optional<ListOptions> options,
-    const jsg::TypeHandler<jsg::Ref<R2Error>>& errorType) {
+    const jsg::TypeHandler<jsg::Ref<R2Error>>& errorType, CompatibilityFlags::Reader flags) {
   return js.evalNow([&] {
     auto& context = IoContext::current();
     auto client = context.getHttpClient(clientIndex, true, nullptr, "r2_list"_kj);
@@ -793,7 +796,8 @@ jsg::Promise<R2Bucket::ListResult> R2Bucket::list(
 
     kj::StringPtr components[2];
     auto path = fillR2Path(components, adminAccount, adminBucket);
-    auto promise = doR2HTTPGetRequest(kj::mv(client), kj::mv(requestJson), path, jwt);
+    auto promise = doR2HTTPGetRequest(kj::mv(client), kj::mv(requestJson), path, jwt,
+        flags);
 
     return context.awaitIo(kj::mv(promise),
         [expectedOptionalFields = expectedOptionalFields.releaseAsArray(), &errorType]

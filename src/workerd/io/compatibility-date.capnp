@@ -297,4 +297,15 @@ struct CompatibilityFlags @0x8f8c1b68151b6cef {
   # This one operates a bit backwards. With the flag *enabled* no default cfBotManagement
   # data will be included. The the flag *disable*, default cfBotManagement data will be
   # included in the request.cf if the field is not present.
+
+  brotliContentEncoding @30 :Bool
+      $compatEnableFlag("brotli_content_encoding")
+      $compatDisableFlag("no_brotli_content_encoding")
+  # TODO: Adjust compatibility date; take another look at description
+      $compatEnableDate("2023-12-31");
+  # Enables compression/decompression support for the brotli compression algorithm.
+  # With the flag enabled workerd will support the "br" content encoding in the Response API and
+  # compress or decompress data accordingly as with gzip. When the flag is enabled, set the
+  # encodeBody parameter to "manual" to avoid adding brotli compression when serving
+  # already compressed data.
 }
