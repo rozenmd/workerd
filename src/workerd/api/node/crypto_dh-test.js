@@ -39,6 +39,7 @@ export const dh_dummy_test = {
   }
 }
 
+// TODO: Would use larger size if following FIPS requirements
 const size = 0 ? 1024 : 256;
 const dh1 = crypto.createDiffieHellman(size);
 const p1 = dh1.getPrime('buffer');

@@ -37,17 +37,25 @@ type ArrayLike = cryptoImpl.ArrayLike;
 
 import {
   ERR_CRYPTO_ECDH_INVALID_PUBLIC_KEY,
+  ERR_CRYPTO_INCOMPATIBLE_KEY,
+  ERR_CRYPTO_INVALID_KEY_OBJECT_TYPE,
   ERR_INVALID_ARG_TYPE,
+  ERR_INVALID_ARG_VALUE,
 } from 'node-internal:internal_errors';
 
 import {
   validateInt32,
+  validateObject,
 } from 'node-internal:validators';
 
 import {
   isArrayBufferView,
   isAnyArrayBuffer
 } from 'node-internal:internal_types';
+
+import {
+  KeyObject,
+} from 'node-internal:crypto_keys';
 
 import {
   getArrayBufferOrView,
@@ -58,13 +66,13 @@ import {
 const DH_GENERATOR = 2;
 
 export class DiffieHellman {
-  private [kHandle]: cryptoImpl.DHHandle;
+  private [kHandle]: any;
 
   constructor(sizeOrKey: number|ArrayLike, keyEncoding?: number|string,
               generator?: number|ArrayLike, genEncoding?: string) {
     // TODO: Need to support constructing DH directly unless new is used, see tests
-    // if (!(this instanceof DiffieHellman))
-    //   return new DiffieHellman(sizeOrKey, keyEncoding, generator, genEncoding);
+     if (!(this instanceof DiffieHellman))
+       return new DiffieHellman(sizeOrKey, keyEncoding, generator, genEncoding);
 
     if (typeof sizeOrKey !== 'number' &&
         typeof sizeOrKey !== 'string' &&
@@ -193,6 +201,37 @@ function encode(buffer: ArrayBuffer, encoding?: string): Buffer|string {
   if (encoding && encoding !== 'buffer')
     return Buffer.from(buffer).toString(encoding);
   return Buffer.from(buffer);
+}
+
+// X448 is not supported.
+const dhEnabledKeyTypes = new Set(['dh', 'ec', 'x25519']);
+
+export function diffieHellman(options: { privateKey: KeyObject; publicKey: KeyObject }): Buffer {
+  validateObject(options, 'options', {});
+
+  const { privateKey, publicKey } = options;
+  if (!(privateKey instanceof KeyObject))
+    throw new ERR_INVALID_ARG_VALUE('options.privateKey', privateKey);
+
+  if (!(publicKey instanceof KeyObject))
+    throw new ERR_INVALID_ARG_VALUE('options.publicKey', publicKey);
+
+  if (privateKey.type !== 'private')
+    throw new ERR_CRYPTO_INVALID_KEY_OBJECT_TYPE(privateKey.type, 'private');
+
+  if (publicKey.type !== 'public' && publicKey.type !== 'private') {
+    throw new ERR_CRYPTO_INVALID_KEY_OBJECT_TYPE(publicKey.type,
+                                                 'private or public');
+  }
+
+  const privateType = (privateKey as any).asymmetricKeyType;
+  const publicType = (publicKey as any).asymmetricKeyType;
+  if (privateType !== publicType || !dhEnabledKeyTypes.has(privateType)) {
+    throw new ERR_CRYPTO_INCOMPATIBLE_KEY('key types for Diffie-Hellman',
+                                          `${privateType} and ${publicType}`);
+  }
+
+  return cryptoImpl.statelessDH(privateKey[kHandle], publicKey[kHandle]);
 }
 
 export function createDiffieHellman(sizeOrKey: number|ArrayLike,

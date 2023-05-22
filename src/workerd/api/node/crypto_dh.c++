@@ -252,4 +252,30 @@ kj::Array<kj::byte> CryptoImpl::DHHandle::generateKeys() {
 
 int CryptoImpl::DHHandle::getVerifyError() { return verifyError; }
 
+/*kj::Array<kj::byte> CryptoImpl::Stateless(const kj::Array<kj::byte> ourKey,
+                                            const kj::Array<kj::byte> theirKey) {
+  size_t out_size;
+
+  // TODO: Use OSSL_NEW() for ctx
+  EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new(ourKey, nullptr);
+  if (!ctx ||
+      EVP_PKEY_derive_init(ctx) <= 0 ||
+      EVP_PKEY_derive_set_peer(ctx, theirKey) <= 0 ||
+      EVP_PKEY_derive(ctx, nullptr, &out_size) <= 0)
+    return ByteSource();
+
+  auto prime_enc = kj::heapArray<kj::byte>(out_size);
+
+  if (EVP_PKEY_derive(ctx, prime_enc.begin(), &out_size) <= 0) {
+    return ByteSource();
+  }
+
+  ZeroPadDiffieHellmanSecret(out_size, prime_enc.begin(), prime_enc.size());
+
+  if (Buffer::Length(out) == 0)
+    return ThrowCryptoError(env, ERR_get_error(), "diffieHellman failed");
+
+  return prime_enc;
+}*/
+
 } // namespace workerd::api::node

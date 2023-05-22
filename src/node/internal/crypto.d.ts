@@ -212,3 +212,4 @@ export class DHHandle {
 }
 
 export function DHGroupHandle(name: string): DHHandle;
+export function statelessDH(privateKey: CryptoKey, publicKey: CryptoKey): Buffer;
