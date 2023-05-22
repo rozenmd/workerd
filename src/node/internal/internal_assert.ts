@@ -65,7 +65,7 @@ function createAssertionError(
   return error;
 }
 
-function assert(actual: unknown, message?: string | Error): asserts actual {
+export function assert(actual: unknown, message?: string | Error): asserts actual {
   if (arguments.length === 0) {
     throw new AssertionError({
       message: "No value argument passed to `assert.ok()`",
@@ -876,6 +876,7 @@ Object.assign(strict, {
   notDeepStrictEqual,
   notEqual: notStrictEqual,
   notStrictEqual,
+  assert,
   ok,
   rejects,
   strict,
@@ -898,6 +899,7 @@ export default Object.assign(assert, {
   notDeepStrictEqual,
   notEqual,
   notStrictEqual,
+  assert,
   ok,
   rejects,
   strict,

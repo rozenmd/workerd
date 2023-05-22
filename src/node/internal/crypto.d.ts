@@ -194,3 +194,21 @@ export interface GenerateKeyPairOptions {
   publicKeyEncoding?: PublicKeyExportOptions;
   privateKeyEncoding?: PrivateKeyExportOptions;
 }
+
+// DiffieHellman
+export class DHHandle {
+  public constructor(sizeOrKey: number | ArrayBuffer | ArrayBufferView, generator: number | ArrayBuffer | ArrayBufferView);
+  public setPublicKey(data: ArrayBuffer | ArrayBufferView | Buffer): void;
+  public setPrivateKey(data: ArrayBuffer | ArrayBufferView | Buffer): void;
+  public getPublicKey(): ArrayBuffer;
+  public getPrivateKey(): ArrayBuffer;
+  public getGenerator(): ArrayBuffer;
+  public getPrime(): ArrayBuffer;
+
+  public computeSecret(key: ArrayBufferView): ArrayBuffer;
+  public generateKeys(): ArrayBuffer;
+
+  public getVerifyError(): number;
+}
+
+export function DHGroupHandle(name: string): DHHandle;
